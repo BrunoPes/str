@@ -44,6 +44,9 @@ void startThreadA() {
 	if(pthread_create(&threadt, NULL, threadA, (void*)pparam)) {
 		return;
 	}
+	if(pthread_join(threadt, NULL)) {
+		return;
+	}
 }
 
 void print(void* arg) {
@@ -58,6 +61,9 @@ void startThreadB() {
 	if(pthread_create(&threadt, NULL, print, NULL)) {
 		return;
 	}
+	if(pthread_join(threadt, NULL)) {
+		return;
+	}
 }
 
 int main() {
@@ -66,6 +72,5 @@ int main() {
 	}
 	startThreadB();
 
-	while(stop != 1);
 	return 0;
 }

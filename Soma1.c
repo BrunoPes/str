@@ -52,7 +52,7 @@ void startThreadA() {
 	// printf("Created a thread A.\n");
 }
 
-void print(void* arg) {
+void print() {
 	while(ind != 5);
 	bubbleSort(v, 5);
 	stop = 1;

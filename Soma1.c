@@ -3,7 +3,7 @@
 #include <time.h>
 #include "process.h"
 
-int v[5] = {-1, -1, -1, -1, -1}, ind = 0, stop = 0;
+int v[5] = {-1, -1, -1, -1, -1}, ind = 0, stop = 1;
 
 void bubbleSort(int *array, int size) {
   int i, j, aux;
@@ -19,43 +19,45 @@ void bubbleSort(int *array, int size) {
   }
  
   printf("\nVetor ordenado:\n");
-  for(int i=0; i < size; i++) {
+  for(i=0; i < size; i++) {
 		printf("V[%d]: %d\n", i, v[i]);
 	}
 }
 
-
 int radomizeNum() {
-	srand((unsigned)time(NULL));
 	return rand() % 100;
 }
 
-void threadA(void *parg) {
-	int x = *((int*) parg);
+void threadA(void *arg) {
+	int x = *((int *) arg);
 	printf("X value is: %d.\n", x);
 	v[ind++] = x + 5;
+	stop = 0;
 }
 
 void startThreadA() {
-	long int threadId;
-	int param = radomizeNum();
-	int *pparam = &param;
-#if defined(_WIN32_)
-	if((threadId = _beginthread(threadA, 4096, (void*)pparam)) == (unsigned long)-1)	{
-#else
-	if((threadId = _beginthread(threadA, 4096, (void*)pparam)) == -1) 	{
-#endif
-		// printf("Unable to create a thread A.\n");
-		return;
+	int i, a;
+	for(i=0; i < 5; i++) {
+		long int threadId;
+		a = radomizeNum();
+	#if defined(_WIN32_)
+		if((threadId = _beginthread(threadA, 4096, (void *)&a)) == (unsigned long)-1)	{
+	#else
+		if((threadId = _beginthread(threadA, 4096, (void *)&a)) == -1) 	{
+	#endif
+			printf("Unable to create a thread %d.\n", i);
+			return;
+		}
+		printf("Criada thread %d - ", i);
+		while(stop == 1);
+		stop = 1;
 	}
-
-	// printf("Created a thread A.\n");
 }
 
 void print() {
 	while(ind != 5);
 	bubbleSort(v, 5);
-	stop = 1;
+	stop = 2;
 }
 
 void startThreadB() {
@@ -65,19 +67,15 @@ void startThreadB() {
 #else
 	if((threadId = _beginthread(print, 4096, NULL)) == -1) 	{
 #endif
-		// printf("Unable to create a thread B.\n");
 		return;
 	}
-
-	// printf("Created a thread B.\n");
 }
 
 int main() {
-	for(int i=0; i < 5; i++) {
-		startThreadA();
-	}
+	srand(time(NULL));
+	startThreadA();
 	startThreadB();
 
-	while(stop != 1);
+	while(stop != 2);
 	return 0;
 }

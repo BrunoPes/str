@@ -3,7 +3,7 @@
 #include <time.h>
 #include <pthread.h>
 
-int v[5] = {-1, -1, -1, -1, -1}, ind = 0, stop = 0;
+int v[5] = {-1, -1, -1, -1, -1}, ind = 0, stop = 1;
 
 void bubbleSort(int *array, int size) {
   int i, j, aux;
@@ -26,51 +26,46 @@ void bubbleSort(int *array, int size) {
 
 
 int radomizeNum() {
-	srand((unsigned)time(NULL));
 	return rand() % 100;
 }
 
-void threadA(void *parg) {
+void *threadA(void *parg) {
 	int x = *((int*) parg);
 	printf("X value is: %d.\n", x);
 	v[ind++] = x + 5;
+	stop = 0;
 }
 
 void startThreadA() {
-	pthread_t threadt;
-	int param = radomizeNum();
-	int *pparam = &param;
-
-	if(pthread_create(&threadt, NULL, threadA, (void*)pparam)) {
-		return;
-	}
-	if(pthread_join(threadt, NULL)) {
-		return;
+	int i, a;
+	for(i=0; i < 5; i++) {
+		pthread_t threadt;
+		a = radomizeNum();
+		pthread_create(&threadt, NULL, threadA, (void *)&a);
+		pthread_join(threadt, NULL);
+		printf("Criada thread %d - ", i);
+		while(stop == 1);
+		stop = 1;
 	}
 }
 
-void print(void* arg) {
+void *print(void* arg) {
 	while(ind != 5);
 	bubbleSort(v, 5);
-	stop = 1;
+	stop = 2;
 }
 
 void startThreadB() {
 	pthread_t threadt;
-
-	if(pthread_create(&threadt, NULL, print, NULL)) {
-		return;
-	}
-	if(pthread_join(threadt, NULL)) {
-		return;
-	}
+	pthread_create(&threadt, NULL, print, NULL);
+	pthread_join(threadt, NULL);
 }
 
 int main() {
-	for(int i=0; i < 5; i++) {
-		startThreadA();
-	}
+	srand(time(NULL));
+	startThreadA();
 	startThreadB();
 
+	while(stop != 2);
 	return 0;
 }
